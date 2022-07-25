@@ -2074,7 +2074,7 @@ class BenchmarkCNN(object):
       Dictionary containing training statistics (num_workers, num_steps,
       average_wall_time, images_per_sec).
     """
-    tf.logging.info("RITA INFO: START benchmark training process {} {}", self.job_name, self.task_index)
+    tf.logging.info("RITA INFO: START benchmark training process {} {}".formart(self.job_name, self.task_index))
     graph = tf.Graph()
     with graph.as_default():
       build_result = self._build_graph()
