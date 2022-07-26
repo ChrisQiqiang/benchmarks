@@ -2941,7 +2941,7 @@ class BenchmarkCNN(object):
     training_ops = []
     
     for d, device in enumerate(apply_gradient_devices):
-      tf.logging.info("RITA INFO: Before apply, device ", d, type(gradient_state))
+      tf.logging.info("RITA INFO: Before apply, device {}".format(d), type(gradient_state))
       with tf.device(device):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
@@ -2977,7 +2977,7 @@ class BenchmarkCNN(object):
           self.variable_mgr.append_apply_gradients_ops(
               gradient_state, opt, clipped_grads, training_ops,
               loss_scale_params)
-        tf.logging.info("RITA INFO: After apply, device ", d, type(clipped_grads))
+        tf.logging.info("RITA INFO: After apply, device {}".format(d), type(clipped_grads))
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
 
     with tf.device(self.cpu_device):
