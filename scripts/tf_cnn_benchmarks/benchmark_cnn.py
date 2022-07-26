@@ -2353,6 +2353,7 @@ class BenchmarkCNN(object):
           self.init_global_step,
           self.num_workers * (self.num_warmup_batches + self.num_batches) - 1)
       global_step_watcher.start()
+      tf.logging.info("\n\n\nRITA INFO: START THE GLOBAL WATCHER!!\n\n\n")
     else:
       global_step_watcher = None
     eval_image_producer = None
@@ -2919,7 +2920,7 @@ class BenchmarkCNN(object):
         fetches['all_logits'] = tf.concat(all_logits, 0)
       return fetches
     ##TODO: rita add: 如果为parameter server的时候，修改variable_mgr方法类。
-    tf.logging.info("\n\n\nRITA INFO: self.variable_mgr type: {} {}".format(variable_mgr, dir(variable_mgr)))
+    tf.logging.info("\n\n\nRITA INFO: self.variable_mgr type: {}".format(type(variable_mgr)))
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
 
@@ -2941,7 +2942,7 @@ class BenchmarkCNN(object):
     training_ops = []
     
     for d, device in enumerate(apply_gradient_devices):
-      tf.logging.info("RITA INFO: Before apply, device {}".format(d), type(gradient_state))
+      # tf.logging.info("RITA INFO: Before apply, device {}".format(d), type(gradient_state))
       with tf.device(device):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
@@ -2977,7 +2978,7 @@ class BenchmarkCNN(object):
           self.variable_mgr.append_apply_gradients_ops(
               gradient_state, opt, clipped_grads, training_ops,
               loss_scale_params)
-        tf.logging.info("RITA INFO: After apply, device {}".format(d), type(clipped_grads))
+        # tf.logging.info("RITA INFO: After apply, device {}".format(d), type(clipped_grads))
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
 
     with tf.device(self.cpu_device):
