@@ -776,7 +776,7 @@ def create_config_proto(params):
   if params.rewriter_config:
     rewriter_config = rewriter_config_pb2.RewriterConfig()
     text_format.Merge(params.rewriter_config, rewriter_config)
-    config.graph_options.rewrite_options.CopyFrom(rewriter_config)
+    config.grintra_op_parallelism_threadsaph_options.rewrite_options.CopyFrom(rewriter_config)
   elif not params.enable_optimizations:
     config.graph_options.optimizer_options.opt_level = tf.OptimizerOptions.L0
     config.graph_options.rewrite_options.disable_meta_optimizer = True
@@ -1647,6 +1647,10 @@ class BenchmarkCNN(object):
       raise ValueError(
           'Invalid variable_update: %s' % self.params.variable_update)
 
+
+    ###RITA: OUTPUT the strategy name.
+    tf.logging.info("@@@@@RITA INFO: {}".format(self.variable_mgr.strategy_name))
+
     # Device to use for running on the local worker's compute device, but
     # with variables assigned to parameter server devices.
     self.devices = self.variable_mgr.get_devices()
@@ -1671,8 +1675,7 @@ class BenchmarkCNN(object):
           self.eval_input_preprocessor = self.get_input_preprocessor()
     self.datasets_use_prefetch = (
         self.params.datasets_use_prefetch and
-        # TODO(rohanj): Figure out why --datasets_use_prefetch freezes on the
-        # CPU.
+        # TODO(rohanj): Figure out why --datasets_use_prefetch freezes on the CPU.
         self.params.device.lower() != 'cpu' and
         self.input_preprocessor and
         self.input_preprocessor.supports_datasets())
@@ -2424,11 +2427,16 @@ class BenchmarkCNN(object):
       collective_graph_key = 7 if (
           self.params.variable_update == 'collective_all_reduce') else 0
       (summary_str, last_average_loss) = benchmark_one_step(
-          sess, graph_info.fetches, local_step,
-          self.batch_size * (self.num_workers
-                             if self.single_session else 1), step_train_times,
-          self.trace_filename, self.params.partitioned_graph_file_prefix,
-          profiler, image_producer, self.params, fetch_summary,
+          sess, graph_info.fetches, 
+          local_step,
+          self.batch_size * (self.num_workers if self.single_session else 1), 
+          step_train_times,
+          self.trace_filename, 
+          self.params.partitioned_graph_file_prefix,
+          profiler, 
+          image_producer,
+          self.params, 
+          fetch_summary,
           benchmark_logger=self.benchmark_logger,
           collective_graph_key=collective_graph_key,
           should_output_files=(self.params.variable_update != 'horovod' or
@@ -2477,6 +2485,9 @@ class BenchmarkCNN(object):
     if global_step_watcher:
       while not global_step_watcher.done():
         time.sleep(.25)
+    
+    
+    ## rita: if the global watcher is on, the following codes are to calculate the average speed and other summary info.
     if not global_step_watcher:
       elapsed_time = loop_end_time - loop_start_time
       average_wall_time = elapsed_time / local_step if local_step > 0 else 0
@@ -2803,8 +2814,9 @@ class BenchmarkCNN(object):
       mode_string = 'evaluation'
     else:
       mode_string = 'training'
+    
 
-    log_fn('Generating {} model'.format(mode_string))
+    tf.logging.info('@@@@@RITA INFO: Generating {} model when building model'.format(mode_string))
     losses = []
     device_grads = []
     all_logits = []
@@ -2859,6 +2871,7 @@ class BenchmarkCNN(object):
           # the moving averages for one tower. In parameter server mode, all
           # towers share a copy of the variables so we also only need to update
           # and save the moving averages once.
+          tf.logging.info('@@@@@RITA INFO: Generating update_ops in scope tower_{} when building model'.format(device_num))
           update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, name_scope)
           if self.datasets_use_prefetch:
             assert not self.variable_mgr.staging_delta_ops
@@ -2889,10 +2902,12 @@ class BenchmarkCNN(object):
       update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
       mlperf.logger.log(key=mlperf.tags.INPUT_BN_SPAN,
                         value=self.batch_size // len(self.raw_devices))
-
+                        
+    tf.logging.info('@@@@@RITA INFO: BUILD FETCH BEGINS!!!')  
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)
+    tf.logging.info('@@@@@RITA INFO: BUILD FETCH AND BUILD MODEL ENDS!!!')                              
     return (input_producer_op, enqueue_ops, fetches)
 
   def _build_fetches(self, global_step, all_logits, losses, device_grads,
@@ -2919,8 +2934,9 @@ class BenchmarkCNN(object):
       if self.params.forward_only:
         fetches['all_logits'] = tf.concat(all_logits, 0)
       return fetches
-    ##TODO: rita add: 如果为parameter server的时候，修改variable_mgr方法类。
-    tf.logging.info("\n\n\nRITA INFO: self.variable_mgr type: {}".format(type(variable_mgr)))
+
+
+    tf.logging.info("@@@@RITA INFO: preprocess_device_grads in build_fetches.")
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
 
@@ -2942,11 +2958,11 @@ class BenchmarkCNN(object):
     training_ops = []
     
     for d, device in enumerate(apply_gradient_devices):
-      # tf.logging.info("RITA INFO: Before apply, device {}".format(d), type(gradient_state))
       with tf.device(device):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
+          tf.logging.info("@@@@RITA INFO: get gradients to apply in device {} in build_fetches.".format(device))
           avg_grads = self.variable_mgr.get_gradients_to_apply(d,
                                                                gradient_state)
 
@@ -2978,8 +2994,9 @@ class BenchmarkCNN(object):
           self.variable_mgr.append_apply_gradients_ops(
               gradient_state, opt, clipped_grads, training_ops,
               loss_scale_params)
-        # tf.logging.info("RITA INFO: After apply, device {}".format(d), type(clipped_grads))
+
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
+    tf.logging.info("@@@@RITA INFO: GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.".format(device))
 
     with tf.device(self.cpu_device):
       if self.task_index == 0 and self.params.summary_verbosity >= 1:

@@ -44,7 +44,7 @@ class VariableMgr(object):
 
     # A variable for automatic loss scaling.
     self.grad_has_inf_nan = None
-
+    self.strategy_name = None
     self._reuse_vars = False
 
   def each_tower_has_variables(self):
@@ -640,6 +640,10 @@ class VariableMgrDistributedFetchFromPS(VariableMgr):
      a copy of the variables from the parameter server, and sends its gradients
      to the param server.
   """
+
+  def __init__(self, benchmark_cnn):
+    super().__init__(benchmark_cnn)
+    self.strategy_name = "VariableMgrDistributedFetchFromPS"
 
   def each_tower_has_variables(self):
     return False
