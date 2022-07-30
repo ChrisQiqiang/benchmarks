@@ -2859,7 +2859,9 @@ class BenchmarkCNN(object):
               if key not in all_accuracy_ops:
                 all_accuracy_ops[key] = []
               all_accuracy_ops[key].append(op)
-
+        import socket
+        hostname = socket.gethostname()
+        tf.logging.info('Host {} : \n @@@@@RITA INFO: build model in scope tower_{} when building model'.format(hostname, device_num))
         if device_num == 0:
           # Retain the Batch Normalization updates operations only from the
           # first tower. These operations update the moving mean and moving
@@ -2871,7 +2873,7 @@ class BenchmarkCNN(object):
           # the moving averages for one tower. In parameter server mode, all
           # towers share a copy of the variables so we also only need to update
           # and save the moving averages once.
-          tf.logging.info('@@@@@RITA INFO: Generating update_ops in scope tower_{} when building model'.format(device_num))
+          
           update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS, name_scope)
           if self.datasets_use_prefetch:
             assert not self.variable_mgr.staging_delta_ops
@@ -2902,7 +2904,7 @@ class BenchmarkCNN(object):
       update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
       mlperf.logger.log(key=mlperf.tags.INPUT_BN_SPAN,
                         value=self.batch_size // len(self.raw_devices))
-                        
+
     tf.logging.info('@@@@@RITA INFO: BUILD FETCH BEGINS!!!')  
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
