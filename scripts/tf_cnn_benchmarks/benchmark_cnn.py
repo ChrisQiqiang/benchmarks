@@ -2819,7 +2819,7 @@ class BenchmarkCNN(object):
       mode_string = 'training'
     
 
-    tf.logging.info('\n\n\n@@@@@RITA INFO: Generating {} model\n\n'.format(mode_string))
+    log_fn('\n\n\n@@@@@RITA INFO: Generating {} model\n\n'.format(mode_string))
     losses = []
     device_grads = []
     all_logits = []
@@ -2863,7 +2863,7 @@ class BenchmarkCNN(object):
                 all_accuracy_ops[key] = []
               all_accuracy_ops[key].append(op)
 
-        tf.logging.info('\n\n\n Host @@@@@RITA INFO: {} \n\n:  build model in scope tower_{} when building model'.format(self.hostname, device_num))
+        log_fn('\n\n\n Host @@@@@RITA INFO: {} \n\n:  build model in scope tower_{} when building model'.format(self.hostname, device_num))
         if device_num == 0:
           # Retain the Batch Normalization updates operations only from the
           # first tower. These operations update the moving mean and moving
@@ -2941,8 +2941,9 @@ class BenchmarkCNN(object):
 
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
-    tf.logging.info("\n\n\n @@@@RITA INFO:{} build_fetches, \
-              apply_gradient_devices len: {}.\n\n".format(self.hostname, len(apply_gradient_devices)))
+    log_fn("\n\n\n @@@@RITA INFO:{} build_fetches, apply_gradient_devices len: {}.\n\n".format(self.hostname, len(apply_gradient_devices)))
+
+
     # TODO(reedwm): Greatly simplify the learning rate code.
     if (self.params.variable_update == 'horovod' or
         self.params.variable_update == 'collective_all_reduce'):
@@ -2965,7 +2966,7 @@ class BenchmarkCNN(object):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
-          tf.logging.info("\n\n\n@@@@RITA INFO: {} get gradients to apply in device {} in build_fetches.\n\n".format(self.hostname, d))
+          log_fn("\n\n\n@@@@RITA INFO: {} get gradients to apply in device {} in build_fetches.\n\n".format(self.hostname, d))
           avg_grads = self.variable_mgr.get_gradients_to_apply(d,
                                                                gradient_state)
 
@@ -2999,7 +3000,7 @@ class BenchmarkCNN(object):
               loss_scale_params)
 
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
-    tf.logging.info("\n\n\n @@@@RITA INFO: GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.\n\n".format(device))
+    log_fn("\n\n\n @@@@RITA INFO: GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.\n\n".format(device))
 
     with tf.device(self.cpu_device):
       if self.task_index == 0 and self.params.summary_verbosity >= 1:
