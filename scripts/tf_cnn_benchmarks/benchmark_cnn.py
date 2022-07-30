@@ -2965,7 +2965,7 @@ class BenchmarkCNN(object):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
-          log_fn("get gradients to apply in device {} in build_fetches.".format(d))
+          log_rita("get gradients to apply in device {} in build_fetches.".format(d))
           avg_grads = self.variable_mgr.get_gradients_to_apply(d,
                                                                gradient_state)
 

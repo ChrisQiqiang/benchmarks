@@ -43,7 +43,7 @@ def log_rita(log):
   import socket
   import time
   cur_time = time.asctime( time.localtime(time.time()) )
-  print("\n\n[{}]RITA INFO: Host {} {}.\n\n".format(cur_time, socket.gethostname(), log))
+  print("\n\n[{} Host {} ]RITA INFO: {}.\n\n".format(cur_time, socket.gethostname(), log))
 
 
 def roll_numpy_batches(array, batch_size, shift_ratio):
