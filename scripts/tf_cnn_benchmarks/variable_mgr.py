@@ -308,6 +308,7 @@ class VariableMgrLocalReplicated(VariableMgr):
     self._warmup_ops = []
     self._allreduce_merge_scope = allreduce_merge_scope
     self._gradient_put_ops = None
+    self.strategy_name = "VariableMgrLocalReplicated"
 
   def each_tower_has_variables(self):
     return True
