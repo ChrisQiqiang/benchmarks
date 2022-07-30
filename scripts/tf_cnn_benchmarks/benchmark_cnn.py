@@ -1316,9 +1316,6 @@ class BenchmarkCNN(object):
     self.resize_method = self.params.resize_method
     self.sync_queue_counter = 0
     self.num_gpus = self.params.num_gpus
-    ##rita add:
-    import socket
-    self.hostname = socket.gethostname()
     if self.params.gpu_indices:
       self.gpu_indices = [int(x) for x in self.params.gpu_indices.split(',')]
     else:
@@ -1653,7 +1650,7 @@ class BenchmarkCNN(object):
 
 
     ###RITA: OUTPUT the strategy name.
-    log_rita(self.variable_mgr.strategy_name)
+    log_rita("Strategy name :".format(self.variable_mgr.strategy_name))
 
     # Device to use for running on the local worker's compute device, but
     # with variables assigned to parameter server devices.
@@ -2940,7 +2937,8 @@ class BenchmarkCNN(object):
 
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
-    log_rita("build_fetches, apply_gradient_devices len: {}".format(len(apply_gradient_devices)))
+    
+    log_rita("build_fetches, apply_gradient_devices len: {}".format(type(gradient_state)))
 
 
     # TODO(reedwm): Greatly simplify the learning rate code.
@@ -3000,7 +2998,7 @@ class BenchmarkCNN(object):
 
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
     log_rita("GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.".format(device))
-
+    log_rita(self.variable_mgr.strategy_name)
     with tf.device(self.cpu_device):
       if self.task_index == 0 and self.params.summary_verbosity >= 1:
         tf.summary.scalar('learning_rate', learning_rate)
