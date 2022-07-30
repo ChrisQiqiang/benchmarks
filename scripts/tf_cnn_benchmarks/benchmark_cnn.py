@@ -1315,6 +1315,9 @@ class BenchmarkCNN(object):
     self.resize_method = self.params.resize_method
     self.sync_queue_counter = 0
     self.num_gpus = self.params.num_gpus
+    ##rita add:
+    import socket
+    self.hostname = socket.gethostname()
     if self.params.gpu_indices:
       self.gpu_indices = [int(x) for x in self.params.gpu_indices.split(',')]
     else:
@@ -1649,7 +1652,7 @@ class BenchmarkCNN(object):
 
 
     ###RITA: OUTPUT the strategy name.
-    tf.logging.info("@@@@@RITA INFO: {}".format(self.variable_mgr.strategy_name))
+    tf.logging.info("\n\n\n@@@@@RITA INFO: {}".format(self.variable_mgr.strategy_name))
 
     # Device to use for running on the local worker's compute device, but
     # with variables assigned to parameter server devices.
@@ -2077,7 +2080,7 @@ class BenchmarkCNN(object):
       Dictionary containing training statistics (num_workers, num_steps,
       average_wall_time, images_per_sec).
     """
-    tf.logging.info("RITA INFO: START benchmark training process {} {}".format(self.job_name, self.task_index))
+    tf.logging.info("\n\n\n@@@@@@RITA INFO: START benchmark training process {} {}".format(self.job_name, self.task_index))
     graph = tf.Graph()
     with graph.as_default():
       build_result = self._build_graph()
@@ -2356,7 +2359,7 @@ class BenchmarkCNN(object):
           self.init_global_step,
           self.num_workers * (self.num_warmup_batches + self.num_batches) - 1)
       global_step_watcher.start()
-      tf.logging.info("\n\n\nRITA INFO: START THE GLOBAL WATCHER!!\n\n\n")
+      tf.logging.info("\n\n\n@@@@ RITA INFO: START THE GLOBAL WATCHER!!\n\n\n")
     else:
       global_step_watcher = None
     eval_image_producer = None
@@ -2816,7 +2819,7 @@ class BenchmarkCNN(object):
       mode_string = 'training'
     
 
-    tf.logging.info('@@@@@RITA INFO: Generating {} model when building model'.format(mode_string))
+    tf.logging.info('\n\n\n@@@@@RITA INFO: Generating {} model'.format(mode_string))
     losses = []
     device_grads = []
     all_logits = []
@@ -2859,9 +2862,8 @@ class BenchmarkCNN(object):
               if key not in all_accuracy_ops:
                 all_accuracy_ops[key] = []
               all_accuracy_ops[key].append(op)
-        import socket
-        hostname = socket.gethostname()
-        tf.logging.info('Host {} : \n @@@@@RITA INFO: build model in scope tower_{} when building model'.format(hostname, device_num))
+
+        tf.logging.info('\n\n\n Host @@@@@RITA INFO: {} :  build model in scope tower_{} when building model'.format(self.hostname, device_num))
         if device_num == 0:
           # Retain the Batch Normalization updates operations only from the
           # first tower. These operations update the moving mean and moving
@@ -2905,11 +2907,11 @@ class BenchmarkCNN(object):
       mlperf.logger.log(key=mlperf.tags.INPUT_BN_SPAN,
                         value=self.batch_size // len(self.raw_devices))
 
-    tf.logging.info('@@@@@RITA INFO: BUILD FETCH BEGINS!!!')  
+    # tf.logging.info('@@@@@RITA INFO: BUILD FETCH BEGINS!!!')  
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)
-    tf.logging.info('@@@@@RITA INFO: BUILD FETCH AND BUILD MODEL ENDS!!!')                              
+    # tf.logging.info('@@@@@RITA INFO: BUILD FETCH AND BUILD MODEL ENDS!!!')                              
     return (input_producer_op, enqueue_ops, fetches)
 
   def _build_fetches(self, global_step, all_logits, losses, device_grads,
@@ -2938,7 +2940,8 @@ class BenchmarkCNN(object):
       return fetches
 
 
-    tf.logging.info("@@@@RITA INFO: preprocess_device_grads in build_fetches.")
+    tf.logging.info("\n\n\n @@@@RITA INFO:{} build_fetches, \
+              apply_gradient_devices len: {}.".format(self.hostname, len(apply_gradient_devices)))
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
 
@@ -2964,7 +2967,7 @@ class BenchmarkCNN(object):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
-          tf.logging.info("@@@@RITA INFO: get gradients to apply in device {} in build_fetches.".format(device))
+          tf.logging.info("\n\n\n@@@@RITA INFO: {} get gradients to apply in device {} in build_fetches.".format(self.hostname, d))
           avg_grads = self.variable_mgr.get_gradients_to_apply(d,
                                                                gradient_state)
 
@@ -2998,7 +3001,7 @@ class BenchmarkCNN(object):
               loss_scale_params)
 
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
-    tf.logging.info("@@@@RITA INFO: GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.".format(device))
+    tf.logging.info("\n\n\n @@@@RITA INFO: GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.".format(device))
 
     with tf.device(self.cpu_device):
       if self.task_index == 0 and self.params.summary_verbosity >= 1:
