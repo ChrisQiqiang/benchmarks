@@ -39,6 +39,12 @@ def tensorflow_version():
 def log_fn(log):
   print(log)
 
+def log_rita(log):
+  import socket
+  import time
+  cur_time = time.asctime( time.localtime(time.time()) )
+  print("\n\n[{}]RITA INFO: Host {} {}.\n\n".format(cur_time, socket.gethostname(), log))
+
 
 def roll_numpy_batches(array, batch_size, shift_ratio):
   """Moves a proportion of batches from start to the end of the array.
