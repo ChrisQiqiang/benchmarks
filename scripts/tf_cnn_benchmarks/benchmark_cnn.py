@@ -2855,7 +2855,7 @@ class BenchmarkCNN(object):
 
     with tf.device(self.global_step_device):
       global_step = tf.train.get_or_create_global_step()
-      global_batches = tf.Variable(0, name = 'global_batches')
+      global_batches = tf.Variable(0., name = 'global_batches')
       self._maybe_initialize_fp16()
 
     # Build the processing and model for the worker.
