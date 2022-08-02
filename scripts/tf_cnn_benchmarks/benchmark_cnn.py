@@ -37,7 +37,7 @@ import numpy as np
 
 import six
 from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow.compat.v1 as tf
+import tensorflow.compat.v1 as global_variables
 
 # pylint: disable=g-direct-tensorflow-import
 import cnn_util
@@ -61,6 +61,7 @@ from tensorflow.python.framework import importer
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import nest
+from tensorflow import Variables
 
 
 _DEFAULT_NUM_BATCHES = 100
@@ -2144,7 +2145,7 @@ class BenchmarkCNN(object):
 
     ###update global batch (rita add)
     global_batches = None
-    for v in tf.compat.v1.global_vaiables():
+    for v in global_vaiables():
       if v.name == 'global_batches':
         tf.assign(global_batches, v)
         fetches['inc_global_batches'] = v.assign_add(self.batch_size)
@@ -2255,7 +2256,7 @@ class BenchmarkCNN(object):
       # local_var_init_op_group may itself initialize global variables (such as
       # in replicated mode).
       ready_for_local_init_op = tf.report_uninitialized_variables(
-          tf.global_variables())
+          global_variables())
     if self.params.variable_update == 'horovod':
       import horovod.tensorflow as hvd  # pylint: disable=g-import-not-at-top
       bcast_global_variables_op = hvd.broadcast_global_variables(0)
