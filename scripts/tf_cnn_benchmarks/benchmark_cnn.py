@@ -2145,7 +2145,7 @@ class BenchmarkCNN(object):
 
     ###update global batch (rita add)
     global_batches = None
-    for v in global_vaiables():
+    for v in global_variables():
       if v.name == 'global_batches':
         tf.assign(global_batches, v)
         fetches['inc_global_batches'] = v.assign_add(self.batch_size)
