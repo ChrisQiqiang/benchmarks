@@ -84,7 +84,8 @@ GraphInfo = namedtuple(  # pylint: disable=invalid-name
         # Group of ops that perform per-device initialization work
         'local_var_init_op_group',
         # Op to produce summaries
-        'summary_op'
+        'summary_op',
+        'global_batches'
     ])
 
 
@@ -684,23 +685,29 @@ class GlobalStepWatcher(threading.Thread):
   number of steps for the global run are done.
   """
 
-  def __init__(self, sess, global_step_op, start_at_global_step,
+  def __init__(self, sess, global_step_op,global_batches_op, start_at_global_step,
                end_at_global_step):
     threading.Thread.__init__(self)
     self.sess = sess
     self.global_step_op = global_step_op
     self.start_at_global_step = start_at_global_step
     self.end_at_global_step = end_at_global_step
-
     self.start_time = 0
     self.start_step = 0
     self.finish_time = 0
     self.finish_step = 0
+    ####rita add
+    self.global_batches_op = global_batches_op
+    self.rita_logger_step = 100
 
   def run(self):
     while self.finish_time == 0:
       time.sleep(.25)
       global_step_val, = self.sess.run([self.global_step_op])
+      global_batches_val, = self.sess.run([self.global_batches_op])
+      log_rita("global_batches:{}".format(global_batches_val))
+      if self.start_step != 0 and self.finish_step == 0 and global_step_val % self.rita_logger_step == 0:
+        self.print_rita_log(global_batches_val, global_step_val)
       if self.start_time == 0 and global_step_val >= self.start_at_global_step:
         # Use tf.logging.info instead of log_fn, since print (which is log_fn)
         # is not thread safe and may interleave the outputs from two parallel
@@ -714,6 +721,11 @@ class GlobalStepWatcher(threading.Thread):
                         (global_step_val, time.ctime()))
         self.finish_time = time.perf_counter()
         self.finish_step = global_step_val
+
+  def print_rita_log(global_batches_val, global_step_val):
+    ##TODO: add some info , depend on global batches.
+    tf.logging.info("global batches: {} global step {} time now: {}".format(global_batches_val, \
+              global_step_val,  time.perf_counter()))
 
   def done(self):
     return self.finish_time > 0
@@ -2122,10 +2134,21 @@ class BenchmarkCNN(object):
       execution_barrier = self.add_sync_queues_and_barrier(
           'execution_barrier_', [])
 
+
+    ###update global step from source code
     global_step = tf.train.get_global_step()
     with tf.device(self.global_step_device), tf.name_scope('inc_global_step'):
       with tf.control_dependencies([main_fetch_group]):
         fetches['inc_global_step'] = global_step.assign_add(1)
+
+
+    ###update global batch (rita add)
+    global_batches = None
+    for v in tf.global_vaiables():
+      if v.name == 'global_batches':
+        tf.assign(global_batches, v)
+        fetches['inc_global_batches'] = v.assign_add(self.batch_size)
+
 
     if ((not self.single_session) and (not self.distributed_collective) and
         self.job_name and self.params.cross_replica_sync):
@@ -2167,7 +2190,8 @@ class BenchmarkCNN(object):
         execution_barrier=execution_barrier,
         global_step=global_step,
         local_var_init_op_group=local_var_init_op_group,
-        summary_op=summary_op)
+        summary_op=summary_op,
+        global_batches = global_batches)
 
   def _benchmark_graph(self, graph_info, eval_graph_info):
     """Benchmark the training graph.
@@ -2348,11 +2372,14 @@ class BenchmarkCNN(object):
         sess.run(graph_info.enqueue_ops[:(i + 1)])
         if image_producer is not None:
           image_producer.notify_image_consumption()
-    self.init_global_step, = sess.run([graph_info.global_step])
+    tmp, = sess.run([graph_info.global_step, graph_info.global_batches])
+    self.init_global_step = tmp[0]
+    self.init_global_batches = tmp[1]
     if self.job_name and not self.params.cross_replica_sync:
       # TODO(zhengxq): Do we need to use a global step watcher at all?
       global_step_watcher = GlobalStepWatcher(
-          sess, graph_info.global_step,
+          sess, graph_info.global_step, 
+          graph_info.global_batches,
           self.num_workers * self.num_warmup_batches +
           self.init_global_step,
           self.num_workers * (self.num_warmup_batches + self.num_batches) - 1)
@@ -2611,6 +2638,7 @@ class BenchmarkCNN(object):
     # Only keep unfreezable variables in forward_only_and_freeze mode.
     # TODO(laigd): consider making global_step a constant.
     variables_to_keep = {graph_info.global_step: tf.GraphKeys.GLOBAL_VARIABLES}
+    variables_to_keep.update({graph_info.global_batches : tf.GraphKeys.GLOBAL_VARIABLES})
     variables_to_keep.update({
         local_variable: tf.GraphKeys.LOCAL_VARIABLES
         for local_variable in self._unfreezable_local_variables(graph)
@@ -2827,6 +2855,7 @@ class BenchmarkCNN(object):
 
     with tf.device(self.global_step_device):
       global_step = tf.train.get_or_create_global_step()
+      global_batches = tf.Variable(0, name = 'global_batches')
       self._maybe_initialize_fp16()
 
     # Build the processing and model for the worker.
