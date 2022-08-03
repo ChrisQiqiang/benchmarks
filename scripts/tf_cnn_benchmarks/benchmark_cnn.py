@@ -728,8 +728,7 @@ class GlobalStepWatcher(threading.Thread):
     ##TODO: add some info , depend on global images.
     global_step_val, = self.sess.run([self.global_step_op])
     global_images_val, = self.sess.run([self.global_images_op])
-    tf.logging.info("TIME NOW: {} ,global images: {} global step {} ".format(global_images_val, \
-              global_step_val,  time.perf_counter()))
+    tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
 
   def done(self):
     return self.finish_time > 0
