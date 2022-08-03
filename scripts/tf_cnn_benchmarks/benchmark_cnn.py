@@ -2148,7 +2148,7 @@ class BenchmarkCNN(object):
     for v in global_variables():
       # log_rita("global variable: {}".format(v.name))  the global batches var name : global_batches:0
       if v.name.startswith('global_batches'):
-        log_rita("The global batches can be accessed in build graph..")
+        log_rita("The global batches can be accessed in build graph.. type: {}".format(type(v)))
         tf.assign(global_batches, v)
         fetches['inc_global_batches'] = v.assign_add(self.batch_size)
 
@@ -2858,7 +2858,7 @@ class BenchmarkCNN(object):
 
     with tf.device(self.global_step_device):
       global_step = tf.train.get_or_create_global_step()
-      global_batches = tf.Variable(0., name = 'global_batches')
+      global_batches = tf.Variable(0., dtype=tf.float32, name = 'global_batches')
       self._maybe_initialize_fp16()
 
     # Build the processing and model for the worker.
