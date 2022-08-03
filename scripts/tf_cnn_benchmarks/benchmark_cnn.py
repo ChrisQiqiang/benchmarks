@@ -2147,8 +2147,11 @@ class BenchmarkCNN(object):
     for v in global_variables():
       # log_rita("global variable: {}".format(v.name))  the global batches var name : global_batches:0
       if v.name.startswith('global_batches'):
+        global_batches = v
         log_rita("The global batches can be accessed in build graph.. type: {}".format(v))
-        fetches['inc_global_batches'] = v.assign_add(self.batch_size)
+        with tf.device(self.global_step_device), tf.name_scope('inc_global_batches'):
+          with tf.control_dependencies([main_fetch_group]):
+            fetches['inc_global_batches'] = v.assign_add(self.batch_size)
 
 
     if ((not self.single_session) and (not self.distributed_collective) and
@@ -2192,7 +2195,7 @@ class BenchmarkCNN(object):
         global_step=global_step,
         local_var_init_op_group=local_var_init_op_group,
         summary_op=summary_op,
-        global_batches = global_batches)
+        global_batches=global_batches)
 
   def _benchmark_graph(self, graph_info, eval_graph_info):
     """Benchmark the training graph.
