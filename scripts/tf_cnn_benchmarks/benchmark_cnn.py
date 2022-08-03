@@ -2091,7 +2091,7 @@ class BenchmarkCNN(object):
       Dictionary containing training statistics (num_workers, num_steps,
       average_wall_time, images_per_sec).
     """
-    tf.logging.info("START benchmark training process {} {}".format(self.job_name, self.task_index))
+    log_rita("START benchmark training process {} {}".format(self.job_name, self.task_index))
     graph = tf.Graph()
     with graph.as_default():
       build_result = self._build_graph()
@@ -2146,7 +2146,9 @@ class BenchmarkCNN(object):
     ###update global batch (rita add)
     global_batches = None
     for v in global_variables():
+      log_rita("global variable: {}".format(v.name))
       if v.name == 'global_batches':
+        log_rita("The global batches can be accessed in build graph..")
         tf.assign(global_batches, v)
         fetches['inc_global_batches'] = v.assign_add(self.batch_size)
 
@@ -2373,9 +2375,9 @@ class BenchmarkCNN(object):
         sess.run(graph_info.enqueue_ops[:(i + 1)])
         if image_producer is not None:
           image_producer.notify_image_consumption()
-    tmp, = sess.run([graph_info.global_step, graph_info.global_batches])
-    self.init_global_step = tmp[0]
-    self.init_global_batches = tmp[1]
+    self.init_global_step , = sess.run([graph_info.global_step])
+    log_rita("Graph info global batches (type): {}".format(graph_info.global_batches))
+    self.init_global_batches = sess.run([graph_info.global_batches]) 
     if self.job_name and not self.params.cross_replica_sync:
       # TODO(zhengxq): Do we need to use a global step watcher at all?
       global_step_watcher = GlobalStepWatcher(
@@ -2968,7 +2970,7 @@ class BenchmarkCNN(object):
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
     
-    log_rita("build_fetches, apply_gradient_devices len: {}".format(type(gradient_state)))
+    # log_rita("build_fetches, apply_gradient_devices len: {}".format(len(gradient_state)))
 
 
     # TODO(reedwm): Greatly simplify the learning rate code.
@@ -3028,7 +3030,7 @@ class BenchmarkCNN(object):
 
     train_op = tf.group(*(training_ops + update_ops), name='train_ops_group')
     log_rita("GROUP TRAINING OP AND UPDATE OPS!!! {} in build_fetches.".format(device))
-    log_rita(self.variable_mgr.strategy_name)
+    log_rita("variable_mgr strategy name :{} ".format(self.variable_mgr.strategy_name))
     with tf.device(self.cpu_device):
       if self.task_index == 0 and self.params.summary_verbosity >= 1:
         tf.summary.scalar('learning_rate', learning_rate)
