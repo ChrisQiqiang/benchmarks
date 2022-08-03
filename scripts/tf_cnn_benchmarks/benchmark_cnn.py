@@ -728,7 +728,8 @@ class GlobalStepWatcher(threading.Thread):
     ##TODO: add some info , depend on global images.
     global_step_val, = self.sess.run([self.global_step_op])
     global_images_val, = self.sess.run([self.global_images_op])
-    tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
+    return global_step_val, int(global_images_val)
+    # tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
 
   def done(self):
     return self.finish_time > 0
@@ -901,17 +902,18 @@ def benchmark_one_step(sess,
       (step == 0 or (step + 1) % params.display_every == 0)):
     speed_mean, speed_uncertainty, speed_jitter = get_perf_timing(
         batch_size, step_train_times, params.display_perf_ewma)
-    log_str = '%i\t%s\t%.*f' % (
+    global_step, global_images = global_step_watcher.print_rita_log()
+    rita_global_log = "global step: {} global images: {}".format(global_step, global_images)
+    log_str = '%i\t%s\t%s\t%.*f' % (
         step + 1,
+        rita_global_log,
         get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter),
         LOSS_AND_ACCURACY_DIGITS_TO_SHOW, lossval)
     if 'top_1_accuracy' in results:
       log_str += '\t%.*f\t%.*f' % (
           LOSS_AND_ACCURACY_DIGITS_TO_SHOW, results['top_1_accuracy'],
           LOSS_AND_ACCURACY_DIGITS_TO_SHOW, results['top_5_accuracy'])
-    log_fn(log_str)
-    ###rita add
-    global_step_watcher.print_rita_log()
+    log_fn(log_str) 
     if benchmark_logger:
       benchmark_logger.log_metric(
           'current_examples_per_sec', speed_mean, global_step=step + 1)
