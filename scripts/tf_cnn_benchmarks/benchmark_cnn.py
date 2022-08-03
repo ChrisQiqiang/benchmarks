@@ -903,7 +903,7 @@ def benchmark_one_step(sess,
     speed_mean, speed_uncertainty, speed_jitter = get_perf_timing(
         batch_size, step_train_times, params.display_perf_ewma)
     global_step, global_images = global_step_watcher.print_rita_log()
-    rita_global_log = "global step: {} global images: {}".format(global_step, global_images)
+    rita_global_log = "{}\t{}".format(global_step, global_images)
     log_str = '%i\t%s\t%s\t%.*f' % (
         step + 1,
         rita_global_log,
@@ -2448,7 +2448,7 @@ class BenchmarkCNN(object):
           sess.run([graph_info.execution_barrier])
 
         # TODO(laigd): rename 'Img' to maybe 'Input'.
-        header_str = ('Step\tImg/sec\t' +
+        header_str = ('Local Step\tGlobal Step\tGlobal images\tImages/sec\t' +
                       self.params.loss_type_to_report.replace('/', ' '))
         if self.params.print_training_accuracy or self.params.forward_only:
           # TODO(laigd): use the actual accuracy op names of the model.
