@@ -2146,8 +2146,8 @@ class BenchmarkCNN(object):
     ###update global batch (rita add)
     global_batches = None
     for v in global_variables():
-      log_rita("global variable: {}".format(v.name))
-      if v.name == 'global_batches':
+      # log_rita("global variable: {}".format(v.name))  the global batches var name : global_batches:0
+      if v.name.startswith('global_batches'):
         log_rita("The global batches can be accessed in build graph..")
         tf.assign(global_batches, v)
         fetches['inc_global_batches'] = v.assign_add(self.batch_size)
