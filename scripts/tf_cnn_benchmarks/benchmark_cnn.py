@@ -2946,7 +2946,7 @@ class BenchmarkCNN(object):
                         value=self.batch_size // len(self.raw_devices))
 
     for grads in device_grads:
-      log_rita("grads len :  {}\n grads device: {}".format(len(grads), grads[0].device))
+      log_rita("grads len :  {}\n grad 0 type: {}".format(len(grads), type(grads[0])))
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)                           
