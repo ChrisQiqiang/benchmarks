@@ -711,16 +711,16 @@ class VariableMgrDistributedFetchFromPS(VariableMgr):
 
     # Make shadow variable on a parameter server for each original trainable
     # variable.
-    for i, (g, v) in enumerate(avg_grads):
-      my_name = variable_mgr_util.PS_SHADOW_VAR_PREFIX + '/' + v.name
-      if my_name.endswith(':0'):
-        my_name = my_name[:-2]
-      new_v = tf.get_variable(
-          my_name,
-          dtype=v.dtype.base_dtype,
-          initializer=v.initial_value,
-          trainable=True)
-      avg_grads[i] = (g, new_v)
+    # for i, (g, v) in enumerate(avg_grads):
+    #   my_name = variable_mgr_util.PS_SHADOW_VAR_PREFIX + '/' + v.name
+    #   if my_name.endswith(':0'):
+    #     my_name = my_name[:-2]
+    #   new_v = tf.get_variable(
+    #       my_name,
+    #       dtype=v.dtype.base_dtype,
+    #       initializer=v.initial_value,
+    #       trainable=True)
+    #   avg_grads[i] = (g, new_v)
     return avg_grads
 
   def get_gradients_to_apply(self, device_num, gradient_state):
