@@ -573,7 +573,7 @@ def aggregate_single_gradient_using_copy(grad_and_vars, use_mean,
     grad = aggregate_indexed_slices_gradients(grads)
   else:
     for grad in grads:
-      print("SHAPE {}, {} ".format(grad.shape, grad))
+      print("grads len {},  {} ".format(len(grads), grad))
     grad = tf.add_n(grads)
 
   if use_mean and len(grads) > 1:
