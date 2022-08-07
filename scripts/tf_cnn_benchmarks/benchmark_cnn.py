@@ -3397,7 +3397,7 @@ class BenchmarkCNN(object):
           forward_pass_and_grad_outputs[0]
           if forward_pass_and_grad_outputs else None)
       grads = (
-          forward_pass_and_grad_outputs[1:]
+          forward_pass_and_grad_outputs[2:]
           if forward_pass_and_grad_outputs else None)
 
       return logits, loss, grads
