@@ -147,7 +147,11 @@ class VariableMgr(object):
       ]
     else:
       params = tf.trainable_variables()
-    return params
+    res = []
+    for param in params:
+      if 'global_image'  not in param.name:
+        res.append(param)
+    return res
 
   @contextlib.contextmanager
   def reuse_variables(self):
