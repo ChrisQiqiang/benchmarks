@@ -64,7 +64,8 @@ from tensorflow.python.util import nest
 from tensorflow import global_variables
 
 
-_DEFAULT_NUM_BATCHES = 100
+_DEFAULT_NUM_BATCHES = 100000000
+_DEFAULT_NUM_IMAGES = 10000000000
 
 
 # GraphInfo encapsulates the tensors/ops that we care about after building a
@@ -1678,7 +1679,7 @@ class BenchmarkCNN(object):
 
     ###RITA: OUTPUT the strategy name.
     tmp = self.params.num_global_images
-    self.end_global_images = tmp if tmp is not None else 100000000000000
+    self.end_global_images = tmp if tmp is not None else _DEFAULT_NUM_IMAGES
     log_rita("Strategy name :".format(self.variable_mgr.strategy_name))
 
 
@@ -2401,8 +2402,7 @@ class BenchmarkCNN(object):
       global_step_watcher = GlobalStepWatcher(
           sess, graph_info.global_step, 
           graph_info.global_images,
-          self.num_workers * self.num_warmup_batches +
-          self.init_global_step,
+          self.num_workers * self.num_warmup_batches + self.init_global_step,
           self.num_workers * (self.num_warmup_batches + self.num_batches) - 1,
           self.init_global_images,
           self.end_global_images)

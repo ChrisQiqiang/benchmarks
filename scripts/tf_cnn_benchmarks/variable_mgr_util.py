@@ -467,6 +467,7 @@ def aggregate_gradients_using_copy_with_variable_colocation(
       assert v == var
 
     with tf.device(var.device):
+      print("aggregate gradients of var {} in device {}".format(var, var.device ))
       grad_and_var, has_nan_or_inf = aggregate_single_gradient_using_copy(
           single_grads, use_mean, check_inf_nan)
       agg_grads.append(grad_and_var)
