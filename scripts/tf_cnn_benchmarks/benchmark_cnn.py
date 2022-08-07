@@ -165,6 +165,9 @@ flags.DEFINE_integer('batch_group_size', 1,
                      'producer.')
 flags.DEFINE_integer('num_batches', None, 'number of batches to run, excluding '
                      'warmup. Defaults to %d' % _DEFAULT_NUM_BATCHES)
+
+
+flags.DEFINE_integer('num_global_images', None, 'training process are terminated when the number of global images achieve the value')
 flags.DEFINE_integer('num_eval_batches', None,
                      'number of eval batches to run, excluding warmup. '
                      'Defaults to --num_batches')
@@ -687,12 +690,14 @@ class GlobalStepWatcher(threading.Thread):
   """
 
   def __init__(self, sess, global_step_op,global_images_op, start_at_global_step,
-               end_at_global_step):
+               end_at_global_step, start_at_global_images, end_at_global_images):
     threading.Thread.__init__(self)
     self.sess = sess
     self.global_step_op = global_step_op
     self.start_at_global_step = start_at_global_step
     self.end_at_global_step = end_at_global_step
+    self.start_at_global_images = start_at_global_images
+    self.end_at_global_images = end_at_global_images
     self.start_time = 0
     self.start_step = 0
     self.finish_time = 0
@@ -700,6 +705,7 @@ class GlobalStepWatcher(threading.Thread):
     ####rita add
     self.global_images_op = global_images_op
     self.rita_logger_step = 100
+
 
   def run(self):
     while self.finish_time == 0:
@@ -717,7 +723,8 @@ class GlobalStepWatcher(threading.Thread):
                         (global_step_val, time.ctime()))
         self.start_time = time.perf_counter()
         self.start_step = global_step_val
-      if self.finish_time == 0 and global_step_val >= self.end_at_global_step:
+      if self.finish_time == 0 and \
+            (global_step_val >= self.end_at_global_step or global_images_val >= self.end_at_global_images):
         tf.logging.info('Finishing real work at step %s at time %s' %
                         (global_step_val, time.ctime()))
         self.finish_time = time.perf_counter()
@@ -728,7 +735,7 @@ class GlobalStepWatcher(threading.Thread):
     ##TODO: add some info , depend on global images.
     global_step_val, = self.sess.run([self.global_step_op])
     global_images_val, = self.sess.run([self.global_images_op])
-    return global_step_val, int(global_images_val)
+    return global_step_val - self.start_at_global_step, int(global_images_val) - self.start_at_global_images
     # tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
 
   def done(self):
@@ -1670,7 +1677,11 @@ class BenchmarkCNN(object):
 
 
     ###RITA: OUTPUT the strategy name.
+    tmp = flags.num_global_images
+    import sys
+    self.end_global_images = tmp if tmp is not None else sys.maxint
     log_rita("Strategy name :".format(self.variable_mgr.strategy_name))
+
 
     # Device to use for running on the local worker's compute device, but
     # with variables assigned to parameter server devices.
@@ -2385,7 +2396,7 @@ class BenchmarkCNN(object):
           image_producer.notify_image_consumption()
     self.init_global_step , = sess.run([graph_info.global_step])
     # log_rita("Graph info global images (type): {}".format(graph_info.global_images))
-    # self.init_global_images = sess.run([graph_info.global_images]) 
+    self.init_global_images = sess.run([graph_info.global_images]) 
     if self.job_name and not self.params.cross_replica_sync:
       # TODO(zhengxq): Do we need to use a global step watcher at all?
       global_step_watcher = GlobalStepWatcher(
@@ -2393,7 +2404,9 @@ class BenchmarkCNN(object):
           graph_info.global_images,
           self.num_workers * self.num_warmup_batches +
           self.init_global_step,
-          self.num_workers * (self.num_warmup_batches + self.num_batches) - 1)
+          self.num_workers * (self.num_warmup_batches + self.num_batches) - 1,
+          self.init_global_images,
+          self.end_global_images)
       global_step_watcher.start()
       log_rita("START THE GLOBAL WATCHER!!")
     else:
