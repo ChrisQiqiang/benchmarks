@@ -492,6 +492,8 @@ def aggregate_gradients_using_copy(tower_grads, use_mean, check_inf_nan):
   """
   agg_grads = []
   has_nan_or_inf_list = []
+  for i, single_grads in enumerate(zip(*tower_grads)):
+    print(i, single_grads[0], single_grads[1])
 
   for single_grads in zip(*tower_grads):
     grad_and_var, has_nan_or_inf = aggregate_single_gradient_using_copy(
@@ -572,8 +574,8 @@ def aggregate_single_gradient_using_copy(grad_and_vars, use_mean,
     # TODO(reedwm): All-reduce IndexedSlices more effectively.
     grad = aggregate_indexed_slices_gradients(grads)
   else:
-    for grad in grads:
-      print("grads len {},  {} ".format(len(grads), grad))
+    # for grad in grads:
+    #   print("grads len {},  {} ".format(len(grads), grad))
     grad = tf.add_n(grads)
 
   if use_mean and len(grads) > 1:
