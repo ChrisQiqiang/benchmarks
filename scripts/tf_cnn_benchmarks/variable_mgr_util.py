@@ -395,6 +395,7 @@ class StagedVariableGetter(object):
     params = []
     for param in params_refs:
       var_name = param.name.split(':')[0]
+      print(var_name)
       if 'global image' in var_name:
         print("guolv global image success. {}\n\n\n".format(var_name))
         continue
