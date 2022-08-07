@@ -28,6 +28,7 @@ import tensorflow.compat.v1 as tf
 import allreduce
 import batch_allreduce
 import variable_mgr_util
+from cnn_util import log_rita
 
 
 class VariableMgr(object):
@@ -225,6 +226,7 @@ class VariableMgrLocalFetchFromPS(VariableMgr):
 
   def get_gradients_to_apply(self, device_num, gradient_state):
     assert device_num == 0
+    log_rita("In PS strategy get_gradients_to_apply, device grads shape is {}".format(gradient_state.get_shape().as_list()))
     device_grads = gradient_state
     agg_grads, self.grad_has_inf_nan = (
         variable_mgr_util.

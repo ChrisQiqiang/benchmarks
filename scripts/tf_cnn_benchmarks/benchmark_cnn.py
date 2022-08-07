@@ -2945,6 +2945,8 @@ class BenchmarkCNN(object):
       mlperf.logger.log(key=mlperf.tags.INPUT_BN_SPAN,
                         value=self.batch_size // len(self.raw_devices))
 
+    for grad in device_grads:
+      log_rita("grad name :  {}\n grad device: {}".format(grad.name, grad.device))
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)                           
@@ -2975,6 +2977,7 @@ class BenchmarkCNN(object):
         fetches['all_logits'] = tf.concat(all_logits, 0)
       return fetches
 
+    ###rita note: in ps strategy, apply_gradient_devices = ps device, gradient_state = device_grads
     apply_gradient_devices, gradient_state = (
         self.variable_mgr.preprocess_device_grads(device_grads))
     
@@ -3004,8 +3007,7 @@ class BenchmarkCNN(object):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
           log_rita("get gradients to apply in device {} in build_fetches.".format(d))
-          avg_grads = self.variable_mgr.get_gradients_to_apply(d,
-                                                               gradient_state)
+          avg_grads = self.variable_mgr.get_gradients_to_apply(d, gradient_state)
 
         if not self.params.compute_lr_on_cpu:
           # We compute the learning rate once for each device in

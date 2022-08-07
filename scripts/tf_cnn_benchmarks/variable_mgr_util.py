@@ -117,7 +117,7 @@ def append_gradients_with_loss_scale(training_ops, get_apply_gradients_ops_func,
   if loss_scale is None or not enable_auto_loss_scale or not is_chief:
     training_ops.extend(get_apply_gradients_ops_func())
   else:
-    # If nans/infs occurred, skip applying gradients and instead update
+    # If nans/infs occurred, loss_scaleskip applying gradients and instead update
     # loss_scale (halve loss_scale and reset loss_scale_normal_steps to zero).
     def update_op_if_nan_or_inf():
       """Update loss_scale and discard gradients if nans/infs occurred."""
