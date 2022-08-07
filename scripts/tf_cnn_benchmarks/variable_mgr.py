@@ -697,7 +697,7 @@ class VariableMgrDistributedFetchFromPS(VariableMgr):
     reduced_device_grads = [[
         (g, v) for g, (_, v) in zip(grads, grad_vars)
     ] for grads, grad_vars in zip(reduced_grads, device_grads)]
-    return self.benchmark_cnn.devices, reduced_device_grads
+    return self.benchmark_cnn.raw_devices, reduced_device_grads
 
   def get_gradients_to_apply(self, device_num, gradient_state):
     assert device_num == 0

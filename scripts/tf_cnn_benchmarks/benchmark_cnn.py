@@ -3005,7 +3005,7 @@ class BenchmarkCNN(object):
     else:
       apply_gradient_devices, gradient_state = (
       self.variable_mgr.preprocess_device_grads(device_grads))
-    # log_rita("build_fetches, apply_gradient_devices len: {}".format(len(gradient_state)))
+    log_rita("build_fetches, apply_gradient_devices len: {}".format(len(gradient_state)))
 
 
     # TODO(reedwm): Greatly simplify the learning rate code.
