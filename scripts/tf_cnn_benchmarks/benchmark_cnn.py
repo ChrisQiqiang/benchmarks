@@ -1678,8 +1678,7 @@ class BenchmarkCNN(object):
 
     ###RITA: OUTPUT the strategy name.
     tmp = self.params.num_global_images
-    import sys
-    self.end_global_images = tmp if tmp is not None else sys.maxint
+    self.end_global_images = tmp if tmp is not None else 100000000000000
     log_rita("Strategy name :".format(self.variable_mgr.strategy_name))
 
 
