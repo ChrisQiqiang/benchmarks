@@ -2945,8 +2945,8 @@ class BenchmarkCNN(object):
       mlperf.logger.log(key=mlperf.tags.INPUT_BN_SPAN,
                         value=self.batch_size // len(self.raw_devices))
 
-    for grad in device_grads:
-      log_rita("grad name :  {}\n grad device: {}".format(grad.name, grad.device))
+    for grads in device_grads:
+      log_rita("grads len :  {}\n grads device: {}".format(len(grads), grads[0].device))
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)                           
