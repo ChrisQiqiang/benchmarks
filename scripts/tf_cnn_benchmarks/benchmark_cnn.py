@@ -166,9 +166,6 @@ flags.DEFINE_integer('batch_group_size', 1,
                      'producer.')
 flags.DEFINE_integer('num_batches', None, 'number of batches to run, excluding '
                      'warmup. Defaults to %d' % _DEFAULT_NUM_BATCHES)
-
-
-flags.DEFINE_integer('num_global_images', None, 'training process are terminated when the number of global images achieve the value')
 flags.DEFINE_integer('num_eval_batches', None,
                      'number of eval batches to run, excluding warmup. '
                      'Defaults to --num_batches')
@@ -679,6 +676,10 @@ flags.DEFINE_string('benchmark_test_id', None,
                     'different test runs. This flag is designed for human '
                     'consumption, and does not have any impact within the '
                     'system.')
+ ##params rita add 
+flags.DEFINE_boolean('rita_strategy', False, "distributed PS and local replicated")
+flags.DEFINE_integer('num_global_images', None, 'training process are terminated \
+    when the number of global images achieve the value')
 
 platforms_util.define_platform_params()
 
@@ -2191,6 +2192,9 @@ class BenchmarkCNN(object):
     variable_manager_init_ops = [local_var_init_op]
     if table_init_ops:
       variable_manager_init_ops.extend([table_init_ops])
+
+
+     #####RITA LOG: get int variables from the ps in the graph.  post and barrier
     if not self.forward_only_and_freeze:
       with tf.control_dependencies([local_var_init_op]):
         variable_manager_init_ops.extend(self.variable_mgr.get_post_init_ops())
@@ -2994,9 +2998,13 @@ class BenchmarkCNN(object):
       return fetches
 
     ###rita note: in ps strategy, apply_gradient_devices = ps device, gradient_state = device_grads
-    apply_gradient_devices, gradient_state = (
-        self.variable_mgr.preprocess_device_grads(device_grads))
-    
+   
+    if(self.params.rita_strategy):
+      apply_gradient_devices, gradient_state = (
+      self.variable_mgr.preprocess_device_grads_on_replicated(device_grads))
+    else:
+      apply_gradient_devices, gradient_state = (
+      self.variable_mgr.preprocess_device_grads(device_grads))
     # log_rita("build_fetches, apply_gradient_devices len: {}".format(len(gradient_state)))
 
 
@@ -3022,7 +3030,7 @@ class BenchmarkCNN(object):
         with tf.name_scope('average_loss'):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
-          log_rita("get gradients to apply in device {} in build_fetches.".format(d))
+          log_rita("get gradients to apply in device {} in build_fetches.".format(device))
           avg_grads = self.variable_mgr.get_gradients_to_apply(d, gradient_state)
 
         if not self.params.compute_lr_on_cpu:

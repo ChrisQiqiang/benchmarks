@@ -671,6 +671,34 @@ class VariableMgrDistributedFetchFromPS(VariableMgr):
     # Returns (gradient_devices, gradient_state)
     return ([self.benchmark_cnn.param_server_device], device_grads)
 
+  ##rita add, use allreduce nccl in the local machine for grads aggergation.
+  def preprocess_device_grads_on_replicated(self, device_grads):
+    compact_grads = (self.benchmark_cnn.params.use_fp16 and
+                     self.benchmark_cnn.params.compact_gradient_transfer)
+    defer_grads = (self.benchmark_cnn.params.variable_consistency == 'relaxed')
+
+    grads_to_reduce = [[g for g, _ in grad_vars] for grad_vars in device_grads]
+    algorithm = batch_allreduce.algorithm_from_params(self.benchmark_cnn.params)
+    reduced_grads, self._warmup_ops = algorithm.batch_all_reduce(
+        grads_to_reduce, self.benchmark_cnn.params.gradient_repacking,
+        compact_grads, defer_grads, self.benchmark_cnn.params.xla_compile)
+    if self.benchmark_cnn.enable_auto_loss_scale:
+      # Check for infs or nans
+      is_finite_list = []
+      with tf.name_scope('check_for_inf_and_nan'):
+        for tower_grads in reduced_grads:
+          with tf.colocate_with(tower_grads[0]):
+            # TODO(tanmingxing): Create fused op that takes in a list of tensors
+            # as input and returns scalar boolean True if there are any
+            # infs/nans.
+            is_finite_list.append(tf.reduce_all(
+                [tf.reduce_all(tf.is_finite(g)) for g in tower_grads]))
+        self.grad_has_inf_nan = tf.logical_not(tf.reduce_all(is_finite_list))
+    reduced_device_grads = [[
+        (g, v) for g, (_, v) in zip(grads, grad_vars)
+    ] for grads, grad_vars in zip(reduced_grads, device_grads)]
+    return self.benchmark_cnn.devices, reduced_device_grads
+
   def get_gradients_to_apply(self, device_num, gradient_state):
     assert device_num == 0
     agg_grads, self.grad_has_inf_nan = (
