@@ -3319,7 +3319,7 @@ class BenchmarkCNN(object):
       aggmeth = tf.AggregationMethod.DEFAULT
       scaled_loss = (total_loss if self.loss_scale is None
                      else total_loss * self.loss_scale)
-      log_rita("loss type: {} params type: {}".format(type(loss), type(params)))
+      log_rita("loss type: {} params type: {}".format(type(scaled_loss), type(params)))
       grads = tf.gradients(scaled_loss, params, aggregation_method=aggmeth)
       if self.params.sparse_to_dense_grads:
         # Passing a sparse gradient to convert_to_tensor turns it into a dense
