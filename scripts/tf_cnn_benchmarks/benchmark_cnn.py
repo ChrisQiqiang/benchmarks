@@ -2155,10 +2155,10 @@ class BenchmarkCNN(object):
       # log_rita("global variable: {}".format(v.name))  the global images var name : global_images:0
       if v.name.startswith('global_images'):
         global_images = v
-        # log_rita("The global images can be accessed in build graph.. type: {}".format(v))
-        # with tf.device(self.global_step_device), tf.name_scope('inc_global_images'):
-        #   with tf.control_dependencies([main_fetch_group]):
-        #     fetches['inc_global_images'] = global_images.assign_add(self.batch_size)
+        log_rita("The global images can be accessed in build graph.. type: {}".format(v))
+        with tf.device(self.global_step_device), tf.name_scope('inc_global_images'):
+          with tf.control_dependencies([main_fetch_group]):
+            fetches['inc_global_images'] = global_images.assign_add(self.batch_size)
 
 
     if ((not self.single_session) and (not self.distributed_collective) and
