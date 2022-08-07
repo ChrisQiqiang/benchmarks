@@ -3387,7 +3387,8 @@ class BenchmarkCNN(object):
       # logits is only fetched in non-train mode or when
       # print_training_accuracy is set.
       for i, v in enumerate(forward_pass_and_grad_outputs):
-        print("prepare grads {}, {}".format(i, v))
+        if i <= 10:
+          print("prepare grads {}, {}".format(i, v))
 
       if not phase_train or self.params.print_training_accuracy:
         logits = forward_pass_and_grad_outputs.pop(0)
