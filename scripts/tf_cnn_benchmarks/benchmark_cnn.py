@@ -2947,8 +2947,8 @@ class BenchmarkCNN(object):
   
     for grads in device_grads:
       log_rita("device_grads len: {}   grads len : {}".format(len(device_grads), len(grads)))
-      for I, grad in enumerate(grads):
-        log_rita("NUMBER {}, GRAD : ".format(grad))
+      for i, grad in enumerate(grads):
+        log_rita("NUMBER {}, GRAD : {} ".format(i, grad))
     fetches = self._build_fetches(global_step, all_logits, losses, device_grads,
                                   enqueue_ops, update_ops, all_accuracy_ops,
                                   phase_train)                           
