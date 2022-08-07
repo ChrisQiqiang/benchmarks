@@ -394,6 +394,8 @@ class StagedVariableGetter(object):
       return params_refs
     params = []
     for param in params_refs:
+      if param.name.startswith('global'):
+        continue
       var_name = param.name.split(':')[0]
       _, var_get_op = self.variable_mgr.staging_vars_on_devices[rel_device_num][
           var_name]
