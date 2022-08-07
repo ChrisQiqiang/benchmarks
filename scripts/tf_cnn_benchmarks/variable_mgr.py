@@ -139,6 +139,7 @@ class VariableMgr(object):
       The set of trainable variables on the specified device.
     """
     del rel_device_num, writable
+    log_rita("In ps strategy tower variables: {} ".format(self.each_tower_has_variables()))
     if self.each_tower_has_variables():
       params = [
           v for v in tf.trainable_variables()

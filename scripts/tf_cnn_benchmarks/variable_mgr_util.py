@@ -395,10 +395,10 @@ class StagedVariableGetter(object):
     params = []
     for param in params_refs:
       var_name = param.name.split(':')[0]
-      print(var_name)
-      if 'global image' in var_name:
-        print("guolv global image success. {}\n\n\n".format(var_name))
-        continue
+      # print(var_name)
+      # if 'global image' in var_name:
+        # print("guolv global image success. {}\n\n\n".format(var_name))
+        # continue
       _, var_get_op = self.variable_mgr.staging_vars_on_devices[rel_device_num][
           var_name]
       params.append(var_get_op)
