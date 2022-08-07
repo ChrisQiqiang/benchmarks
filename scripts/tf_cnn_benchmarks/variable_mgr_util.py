@@ -22,6 +22,7 @@ import collections as pycoll
 import operator
 
 import numpy as np
+from scripts.tf_cnn_benchmarks.cnn_util import log_rita
 import tensorflow.compat.v1 as tf
 
 # pylint: disable=g-direct-tensorflow-import
@@ -394,9 +395,10 @@ class StagedVariableGetter(object):
       return params_refs
     params = []
     for param in params_refs:
-      if param.name.startswith('global'):
-        continue
       var_name = param.name.split(':')[0]
+      if 'global image' in var_name:
+        log_rita("guolv global image success. {}".format(var_name))
+        continue
       _, var_get_op = self.variable_mgr.staging_vars_on_devices[rel_device_num][
           var_name]
       params.append(var_get_op)
