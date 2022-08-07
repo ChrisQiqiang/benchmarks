@@ -2866,9 +2866,8 @@ class BenchmarkCNN(object):
 
     with tf.device(self.global_step_device):
       global_step = tf.train.get_or_create_global_step()
-      global_images = tf.Variable(0., dtype=tf.float32, name = 'global_images')
       self._maybe_initialize_fp16()
-
+    global_images = tf.Variable(0., dtype=tf.float32, name = 'global_images')
     # Build the processing and model for the worker.
     input_producer_op = None
     with tf.name_scope('input_processing'):
@@ -3384,6 +3383,9 @@ class BenchmarkCNN(object):
       logits = None
       # logits is only fetched in non-train mode or when
       # print_training_accuracy is set.
+      for i, v in enumerate(forward_pass_and_grad_outputs):
+        print("prepare grads {}, {}".format(i, v))
+
       if not phase_train or self.params.print_training_accuracy:
         logits = forward_pass_and_grad_outputs.pop(0)
 
