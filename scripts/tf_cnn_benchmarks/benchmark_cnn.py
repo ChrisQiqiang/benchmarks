@@ -3319,10 +3319,12 @@ class BenchmarkCNN(object):
       aggmeth = tf.AggregationMethod.DEFAULT
       scaled_loss = (total_loss if self.loss_scale is None
                      else total_loss * self.loss_scale)
-      for param in params:
-        print(param)
-      log_rita("loss type: {} params type: {}".format(type(scaled_loss), type(params)))
-      grads = tf.gradients(scaled_loss, params, aggregation_method=aggmeth)
+      # for param in params:
+      #   print(param)
+      # log_rita("loss type: {} params type: {}".format(type(scaled_loss), type(params)))
+      # grads = tf.gradients(scaled_loss, params, aggregation_method=aggmeth)
+      ###rita modify, the global image is the first param
+      grads = tf.gradients(scaled_loss, params[1:], aggregation_method=aggmeth)
       if self.params.sparse_to_dense_grads:
         # Passing a sparse gradient to convert_to_tensor turns it into a dense
         # gradient. A sparse gradient is an instance of tf.IndexedSlices.
