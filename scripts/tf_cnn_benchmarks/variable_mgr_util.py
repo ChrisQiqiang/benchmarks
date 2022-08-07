@@ -492,8 +492,10 @@ def aggregate_gradients_using_copy(tower_grads, use_mean, check_inf_nan):
   """
   agg_grads = []
   has_nan_or_inf_list = []
-  for i, single_grads in enumerate(zip(*tower_grads)):
-    print(i, single_grads[0], single_grads[1])
+  # for i, single_grads in enumerate(zip(*tower_grads)):
+  #   print("\naggregate the single gradient {} \n, {} \n, {}\n\n\n ".format(i, 
+  #   single_grads[0].shape() if single_grads[0] is not None else single_grads[0],
+  #   single_grads[1].shape() if single_grads[1] is not None else single_grads[1]))
 
   for single_grads in zip(*tower_grads):
     grad_and_var, has_nan_or_inf = aggregate_single_gradient_using_copy(

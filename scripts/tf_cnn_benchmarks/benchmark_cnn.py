@@ -2155,10 +2155,10 @@ class BenchmarkCNN(object):
       # log_rita("global variable: {}".format(v.name))  the global images var name : global_images:0
       if v.name.startswith('global_images'):
         global_images = v
-        log_rita("The global images can be accessed in build graph.. type: {}".format(v))
-        with tf.device(self.global_step_device), tf.name_scope('inc_global_images'):
-          with tf.control_dependencies([main_fetch_group]):
-            fetches['inc_global_images'] = v.assign_add(self.batch_size)
+        # log_rita("The global images can be accessed in build graph.. type: {}".format(v))
+        # with tf.device(self.global_step_device), tf.name_scope('inc_global_images'):
+        #   with tf.control_dependencies([main_fetch_group]):
+        #     fetches['inc_global_images'] = global_images.assign_add(self.batch_size)
 
 
     if ((not self.single_session) and (not self.distributed_collective) and
@@ -2384,8 +2384,8 @@ class BenchmarkCNN(object):
         if image_producer is not None:
           image_producer.notify_image_consumption()
     self.init_global_step , = sess.run([graph_info.global_step])
-    log_rita("Graph info global images (type): {}".format(graph_info.global_images))
-    self.init_global_images = sess.run([graph_info.global_images]) 
+    # log_rita("Graph info global images (type): {}".format(graph_info.global_images))
+    # self.init_global_images = sess.run([graph_info.global_images]) 
     if self.job_name and not self.params.cross_replica_sync:
       # TODO(zhengxq): Do we need to use a global step watcher at all?
       global_step_watcher = GlobalStepWatcher(
@@ -2727,6 +2727,8 @@ class BenchmarkCNN(object):
         tf.add_to_collection(variables_to_keep[variable], updated_variable)
         if variable is graph_info.global_step:
           updated_global_step = updated_variable
+        if variable is graph_info.global_images:
+          updated_global_images = updated_variable
 
     updated_graph_info = GraphInfo(
         input_producer_op=_get_tensors_or_ops(graph_info.input_producer_op),
@@ -2736,6 +2738,7 @@ class BenchmarkCNN(object):
             graph_info.local_var_init_op_group),
         fetches=_get_tensors_or_ops(graph_info.fetches),
         global_step=updated_global_step,
+        global_images=updated_global_images,
         summary_op=None)
     return (updated_graph, updated_graph_info)
 
@@ -2866,8 +2869,8 @@ class BenchmarkCNN(object):
 
     with tf.device(self.global_step_device):
       global_step = tf.train.get_or_create_global_step()
+      global_images = tf.Variable(0., dtype=tf.float32, name = 'global_images')
       self._maybe_initialize_fp16()
-    global_images = tf.Variable(0., dtype=tf.float32, name = 'global_images')
     # Build the processing and model for the worker.
     input_producer_op = None
     with tf.name_scope('input_processing'):
@@ -3383,8 +3386,8 @@ class BenchmarkCNN(object):
       logits = None
       # logits is only fetched in non-train mode or when
       # print_training_accuracy is set.
-      for i, v in enumerate(forward_pass_and_grad_outputs):
-        print("prepare grads {}, {}".format(i, v))
+      # for i, v in enumerate(forward_pass_and_grad_outputs):
+      #   print("prepare grads {}, {}".format(i, v))
 
       if not phase_train or self.params.print_training_accuracy:
         logits = forward_pass_and_grad_outputs.pop(0)
