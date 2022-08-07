@@ -3319,6 +3319,7 @@ class BenchmarkCNN(object):
       aggmeth = tf.AggregationMethod.DEFAULT
       scaled_loss = (total_loss if self.loss_scale is None
                      else total_loss * self.loss_scale)
+      log_rita("loss type: {} params type: {}".format(type(loss), type(params)))
       grads = tf.gradients(scaled_loss, params, aggregation_method=aggmeth)
       if self.params.sparse_to_dense_grads:
         # Passing a sparse gradient to convert_to_tensor turns it into a dense
@@ -3386,9 +3387,9 @@ class BenchmarkCNN(object):
       logits = None
       # logits is only fetched in non-train mode or when
       # print_training_accuracy is set.
-      for i, v in enumerate(forward_pass_and_grad_outputs):
-        if i <= 10:
-          print("prepare grads {}, {}".format(i, v))
+      # for i, v in enumerate(forward_pass_and_grad_outputs):
+      #   if i <= 10:
+      #     print("prepare grads {}, {}".format(i, v))
 
       if not phase_train or self.params.print_training_accuracy:
         logits = forward_pass_and_grad_outputs.pop(0)
@@ -3397,7 +3398,7 @@ class BenchmarkCNN(object):
           forward_pass_and_grad_outputs[0]
           if forward_pass_and_grad_outputs else None)
       grads = (
-          forward_pass_and_grad_outputs[2:]
+          forward_pass_and_grad_outputs[1:]
           if forward_pass_and_grad_outputs else None)
 
       return logits, loss, grads
