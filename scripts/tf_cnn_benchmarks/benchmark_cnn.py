@@ -2999,13 +2999,13 @@ class BenchmarkCNN(object):
 
     ###rita note: in ps strategy, apply_gradient_devices = ps device, gradient_state = device_grads
    
-    if(self.params.rita_strategy):
+    if self.params.rita_strategy:
       apply_gradient_devices, gradient_state = (
       self.variable_mgr.preprocess_device_grads_on_replicated(device_grads))
     else:
       apply_gradient_devices, gradient_state = (
       self.variable_mgr.preprocess_device_grads(device_grads))
-    log_rita("build_fetches, apply_gradient_devices len: {}".format(len(gradient_state)))
+    log_rita("build_fetches, apply_gradient_devices len: {}".format(len(apply_gradient_devices)))
 
 
     # TODO(reedwm): Greatly simplify the learning rate code.
@@ -3031,7 +3031,10 @@ class BenchmarkCNN(object):
           average_loss = tf.reduce_mean(losses)
         with tf.name_scope('get_gradients_to_apply'):
           log_rita("get gradients to apply in device {} in build_fetches.".format(device))
-          avg_grads = self.variable_mgr.get_gradients_to_apply(d, gradient_state)
+          if self.params.rita_strategy:
+            avg_grads = self.variable_mgr.get_gradients_to_apply_on_replicated(d, gradient_state)
+          else:
+            avg_grads = self.variable_mgr.get_gradients_to_apply(d, gradient_state)
 
         if not self.params.compute_lr_on_cpu:
           # We compute the learning rate once for each device in
