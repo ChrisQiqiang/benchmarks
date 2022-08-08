@@ -733,12 +733,17 @@ class GlobalStepWatcher(threading.Thread):
         self.finish_time = time.perf_counter()
         self.finish_step = global_step_val
 
+  def ignore_warmup_batches(self):
+    global_step_val, = self.sess.run([self.global_step_op])
+    global_images_val, = self.sess.run([self.global_images_op])
+    self.start_at_global_step = global_step_val
+    self.start_at_global_images = global_images_val
 
   def print_rita_log(self):
     ##TODO: add some info , depend on global images.
     global_step_val, = self.sess.run([self.global_step_op])
     global_images_val, = self.sess.run([self.global_images_op])
-    return global_step_val, int(global_images_val)
+    return global_step_val - self.start_at_global_step , int(global_images_val) - self.start_at_global_images
     # tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
 
   def done(self):
@@ -2258,7 +2263,7 @@ class BenchmarkCNN(object):
               (self.num_warmup_batches + len(graph_info.enqueue_ops) - 1.0) /
               (self.batch_group_size)) * self.batch_group_size -
           len(graph_info.enqueue_ops) + 1)
-      log_rita("place 2 {}".format(self.num_warmup_batches))
+  
       log_fn('Round up warm up steps to %d to match batch_group_size' %
              self.num_warmup_batches)
       assert ((self.num_warmup_batches + len(graph_info.enqueue_ops) - 1) %
@@ -2461,7 +2466,6 @@ class BenchmarkCNN(object):
     loop_start_time = time.perf_counter()
     last_average_loss = None
     while not done_fn():
-      log_rita("local step: {}".format(local_step))
       if local_step == 0:
         log_fn('Done warm up')
         if graph_info.execution_barrier:
@@ -2476,7 +2480,7 @@ class BenchmarkCNN(object):
           header_str += '\ttop_1_accuracy\ttop_5_accuracy'
         log_fn(header_str)
         assert len(step_train_times) == self.num_warmup_batches
-        a, b = global_step_watcher.print_rita_log()
+        global_step_watcher.ignore_warmup_batches()
         log_rita("num_warmup_batches: {} global step {} global images {}".format(self.num_warmup_batches, a,b))
       
         # reset times to ignore warm up batch
