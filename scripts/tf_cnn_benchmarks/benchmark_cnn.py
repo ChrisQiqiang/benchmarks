@@ -190,7 +190,7 @@ flags.DEFINE_integer('autotune_threshold', None,
 # TODO(tucker): change num_gpus to num_devices
 flags.DEFINE_integer('num_gpus', 1, 'the number of GPUs to run on')
 flags.DEFINE_string('gpu_indices', '', 'indices of worker GPUs in ring order')
-flags.DEFINE_integer('display_every', 10,
+flags.DEFINE_integer('display_every', 5,
                      'Number of local steps after which progress is printed '
                      'out')
 flags.DEFINE_float('display_perf_ewma', None,
@@ -738,6 +738,7 @@ class GlobalStepWatcher(threading.Thread):
     global_images_val, = self.sess.run([self.global_images_op])
     self.start_at_global_step = global_step_val
     self.start_at_global_images = global_images_val
+    log_rita("WARMUP GLOBAL STEP IS {} AND WARMUP GLOBAL IMAGES IS {}".format(self.start_at_global_step, self.start_at_global_images))
 
   def print_rita_log(self):
     ##TODO: add some info , depend on global images.
