@@ -2481,8 +2481,6 @@ class BenchmarkCNN(object):
         log_fn(header_str)
         assert len(step_train_times) == self.num_warmup_batches
         global_step_watcher.ignore_warmup_batches()
-        log_rita("num_warmup_batches: {} global step {} global images {}".format(self.num_warmup_batches, a,b))
-      
         # reset times to ignore warm up batch
         step_train_times = []
         loop_start_time = time.perf_counter()
