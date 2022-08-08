@@ -717,7 +717,8 @@ class GlobalStepWatcher(threading.Thread):
       # log_rita("global_images:{}".format(global_images_val))
       # if self.start_step != 0 and self.finish_step == 0 and global_step_val % self.rita_logger_step == 0:
       #   self.print_rita_log(global_images_val, global_step_val)
-      if self.start_time == 0 and global_step_val >= self.start_at_global_step:
+      if self.start_time == 0 and \
+        (global_step_val >= self.start_at_global_step or global_images_val >= self.end_at_global_images):
         # Use tf.logging.info instead of log_fn, since print (which is log_fn)
         # is not thread safe and may interleave the outputs from two parallel
         # calls to print, which can break tests.
@@ -1341,6 +1342,7 @@ class BenchmarkCNN(object):
     self.num_warmup_batches = self.params.num_warmup_batches if (
         self.params.num_warmup_batches is not None) else max(
             10, min_autotune_warmup)
+    log_rita("place 1 {}".format(self.num_warmup_batches))
     self.graph_file = self.params.graph_file
     self.resize_method = self.params.resize_method
     self.sync_queue_counter = 0
@@ -2256,6 +2258,7 @@ class BenchmarkCNN(object):
               (self.num_warmup_batches + len(graph_info.enqueue_ops) - 1.0) /
               (self.batch_group_size)) * self.batch_group_size -
           len(graph_info.enqueue_ops) + 1)
+      log_rita("place 2 {}".format(self.num_warmup_batches))
       log_fn('Round up warm up steps to %d to match batch_group_size' %
              self.num_warmup_batches)
       assert ((self.num_warmup_batches + len(graph_info.enqueue_ops) - 1) %
