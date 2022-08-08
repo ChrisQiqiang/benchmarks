@@ -2401,6 +2401,7 @@ class BenchmarkCNN(object):
     self.init_global_step , = sess.run([graph_info.global_step])
     # log_rita("Graph info global images (type): {}".format(graph_info.global_images))
     self.init_global_images, = sess.run([graph_info.global_images]) 
+    log_rita("init global images {}".format(self.init_global_images))
     if self.job_name and not self.params.cross_replica_sync:
       # TODO(zhengxq): Do we need to use a global step watcher at all?
       global_step_watcher = GlobalStepWatcher(
