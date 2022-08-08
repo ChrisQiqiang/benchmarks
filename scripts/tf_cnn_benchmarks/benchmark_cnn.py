@@ -2458,6 +2458,7 @@ class BenchmarkCNN(object):
     loop_start_time = time.perf_counter()
     last_average_loss = None
     while not done_fn():
+      log_rita("local step: {}".format(local_step))
       if local_step == 0:
         log_fn('Done warm up')
         if graph_info.execution_barrier:
@@ -2472,6 +2473,9 @@ class BenchmarkCNN(object):
           header_str += '\ttop_1_accuracy\ttop_5_accuracy'
         log_fn(header_str)
         assert len(step_train_times) == self.num_warmup_batches
+        a, b = global_step_watcher.print_rita_log()
+        log_rita("num_warmup_batches: {} global step {} global images {}".format(self.num_warmup_batches, a,b))
+      
         # reset times to ignore warm up batch
         step_train_times = []
         loop_start_time = time.perf_counter()
