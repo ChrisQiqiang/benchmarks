@@ -678,6 +678,9 @@ class VariableMgrDistributedFetchFromPS(VariableMgr):
     defer_grads = (self.benchmark_cnn.params.variable_consistency == 'relaxed')
 
     grads_to_reduce = [[g for g, _ in grad_vars] for grad_vars in device_grads]
+    
+    log_rita("grads to reduce, the first dim {} and the second dim {}".format(len(grads_to_reduce), len(grads_to_reduce[0])))
+    
     algorithm = batch_allreduce.algorithm_from_params(self.benchmark_cnn.params)
     reduced_grads, self._warmup_ops = algorithm.batch_all_reduce(
         grads_to_reduce, self.benchmark_cnn.params.gradient_repacking,

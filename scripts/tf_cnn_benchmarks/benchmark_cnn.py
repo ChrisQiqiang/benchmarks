@@ -737,7 +737,7 @@ class GlobalStepWatcher(threading.Thread):
     ##TODO: add some info , depend on global images.
     global_step_val, = self.sess.run([self.global_step_op])
     global_images_val, = self.sess.run([self.global_images_op])
-    return global_step_val - self.start_at_global_step, int(global_images_val) - self.start_at_global_images
+    return global_step_val, int(global_images_val)
     # tf.logging.info("TIME NOW: {} ,  global step {} ,   global images: {} ".format(time.perf_counter(), global_step_val, int(global_images_val)))
 
   def done(self):
@@ -2964,6 +2964,7 @@ class BenchmarkCNN(object):
                         value=self.batch_size // len(self.raw_devices))
   
     for grads in device_grads:
+      ##rita log res: len(device_grads) is num gpus in one worker,  len(grads) is the number of gradients.
       log_rita("device_grads len: {}   grads len : {}".format(len(device_grads), len(grads)))
       # for i, grad in enumerate(grads):
       #   log_rita("NUMBER {}, GRAD : {} ".format(i, grad))
