@@ -907,14 +907,14 @@ def benchmark_one_step(sess,
     image_producer.notify_image_consumption()
   train_time = time.perf_counter() - start_time
   step_train_times.append(train_time)
-  if (show_images_per_sec and step >= 0 and
-      (step == 0 or (step + 1) % params.display_every == 0)):
+  if (show_images_per_sec and step + _NUM_STEPS_TO_PROFILE>= 0 and
+      (step + _NUM_STEPS_TO_PROFILE == 0 or (step + _NUM_STEPS_TO_PROFILE + 1) % params.display_every == 0)):
     speed_mean, speed_uncertainty, speed_jitter = get_perf_timing(
         batch_size, step_train_times, params.display_perf_ewma)
     global_step, global_images = global_step_watcher.print_rita_log()
     rita_global_log = "{}\t{}".format(global_step, global_images)
     log_str = '%i\t%s\t%s\t%.*f' % (
-        step + 1,
+        step + _NUM_STEPS_TO_PROFILE + 1,
         rita_global_log,
         get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter),
         LOSS_AND_ACCURACY_DIGITS_TO_SHOW, lossval)
