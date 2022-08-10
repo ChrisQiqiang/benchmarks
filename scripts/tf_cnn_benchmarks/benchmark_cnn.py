@@ -1553,9 +1553,9 @@ class BenchmarkCNN(object):
       self.num_workers = 1
     self.num_ps = self.cluster_manager.num_ps() if self.cluster_manager else 0
 
-    if self.num_workers > 1 and self.params.all_reduce_spec == 'nccl':
-      raise ValueError('--all_reduce_spec=nccl is invalid in a '
-                       'multi-worker job')
+    # if self.num_workers > 1 and self.params.all_reduce_spec == 'nccl':
+    #   raise ValueError('--all_reduce_spec=nccl is invalid in a '
+    #                    'multi-worker job')
 
     # Device to use for ops that need to always run on the local worker's CPU.
     self.cpu_device = '%s/cpu:0' % worker_prefix
