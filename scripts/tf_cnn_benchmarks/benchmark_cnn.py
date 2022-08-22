@@ -937,7 +937,7 @@ def benchmark_one_step(sess,
     log_dir = os.path.dirname(params.log_file)
     if not gfile.Exists(log_dir):
       gfile.MakeDirs(log_dir)
-    with gfile.Open(params.log_file, 'w') as log_file:
+    with gfile.Open(params.log_file, 'a+') as log_file:
       log_file.write(log_str)
 
 
