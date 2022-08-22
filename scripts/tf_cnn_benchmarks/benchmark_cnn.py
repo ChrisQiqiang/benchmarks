@@ -988,7 +988,7 @@ def get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter, scale=0):
     return ('images/sec: %.1f +/- %.1f (jitter = %.1f)' %
             (speed_mean, speed_uncertainty, speed_jitter))
   else:
-    return speed_mean
+    return '%.2f' % speed_mean
 
 
 def get_perf_timing(batch_size, step_train_times, ewma_alpha=None, scale=1):
