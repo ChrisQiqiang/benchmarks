@@ -935,11 +935,12 @@ def benchmark_one_step(sess,
     log_fn(log_str)
 
     #rita: write logs into file
-    log_dir = os.path.dirname(params.log_file)
-    if not gfile.Exists(log_dir):
-      gfile.MakeDirs(log_dir)
-    with gfile.Open(params.log_file, 'a+') as log_file:
-      log_file.write(log_str + '\n')
+    if log_file:
+      log_dir = os.path.dirname(params.log_file)
+      if not gfile.Exists(log_dir):
+        gfile.MakeDirs(log_dir)
+      with gfile.Open(params.log_file, 'a+') as log_file:
+        log_file.write(log_str + '\n')
 
 
     if benchmark_logger:
@@ -2494,11 +2495,12 @@ class BenchmarkCNN(object):
         log_fn(header_str)
 
         #rita: write logs into file
-        log_dir = os.path.dirname(self.params.log_file)
-        if not gfile.Exists(log_dir):
-          gfile.MakeDirs(log_dir)
-        with gfile.Open(self.params.log_file, 'w') as log_file:
-          log_file.write(header_str + '\n')
+        if self.params.log_file:
+          log_dir = os.path.dirname(self.params.log_file)
+          if not gfile.Exists(log_dir):
+            gfile.MakeDirs(log_dir)
+          with gfile.Open(self.params.log_file, 'w') as log_file:
+            log_file.write(header_str + '\n')
 
 
         assert len(step_train_times) == self.num_warmup_batches
