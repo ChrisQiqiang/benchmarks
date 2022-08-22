@@ -935,7 +935,7 @@ def benchmark_one_step(sess,
     log_fn(log_str)
 
     #rita: write logs into file
-    if log_file:
+    if params.log_file:
       log_dir = os.path.dirname(params.log_file)
       if not gfile.Exists(log_dir):
         gfile.MakeDirs(log_dir)
