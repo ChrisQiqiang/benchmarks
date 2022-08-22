@@ -287,6 +287,8 @@ flags.DEFINE_integer('num_inter_threads', 0,
 flags.DEFINE_boolean('use_numa_affinity', False,
                      'Whether to turn on NUMA affinity for CPU devices. '
                      'This is probably only useful when --device=cpu.')
+flags.DEFINE_string('log_file', '',
+                    'Enable TensorFlow tracing and write trace to this file.')
 flags.DEFINE_string('trace_file', '',
                     'Enable TensorFlow tracing and write trace to this file.')
 flags.DEFINE_boolean('use_chrome_trace_format', True,
@@ -929,7 +931,16 @@ def benchmark_one_step(sess,
       log_str += '\t%.*f\t%.*f' % (
           LOSS_AND_ACCURACY_DIGITS_TO_SHOW, results['top_1_accuracy'],
           LOSS_AND_ACCURACY_DIGITS_TO_SHOW, results['top_5_accuracy'])
-    log_fn(log_str) 
+    log_fn(log_str)
+
+    #rita: write logs into file
+    log_dir = os.path.dirname(params.log_file)
+    if not gfile.Exists(log_dir):
+      gfile.MakeDirs(log_dir)
+    with gfile.Open(params.log_file, 'w') as log_file:
+      log_file.write(log_str)
+
+
     if benchmark_logger:
       benchmark_logger.log_metric(
           'current_examples_per_sec', speed_mean, global_step=step + 1)
@@ -2480,6 +2491,15 @@ class BenchmarkCNN(object):
           # TODO(laigd): use the actual accuracy op names of the model.
           header_str += '\ttop_1_accuracy\ttop_5_accuracy'
         log_fn(header_str)
+
+        #rita: write logs into file
+        log_dir = os.path.dirname(self.params.log_file)
+        if not gfile.Exists(log_dir):
+          gfile.MakeDirs(log_dir)
+        with gfile.Open(self.params.log_file, 'w') as log_file:
+          log_file.write(header_str)
+
+
         assert len(step_train_times) == self.num_warmup_batches
         global_step_watcher.ignore_warmup_batches()
         # reset times to ignore warm up batch
