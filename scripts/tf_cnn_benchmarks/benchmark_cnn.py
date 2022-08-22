@@ -922,7 +922,8 @@ def benchmark_one_step(sess,
         batch_size, step_train_times, params.display_perf_ewma)
     global_step, global_images = global_step_watcher.print_rita_log()
     rita_global_log = "{}\t{}".format(global_step, global_images)
-    log_str = '%i\t%s\t%s\t%.*f' % (
+    log_str = '%s\t%i\t%s\t%s\t%.*f' % (
+        'x',
         step + 1,
         rita_global_log,
         get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter),
@@ -981,13 +982,13 @@ def benchmark_one_step(sess,
   return (summary_str, lossval)
 
 
-def get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter, scale=1):
+def get_perf_timing_str(speed_mean, speed_uncertainty, speed_jitter, scale=0):
   if scale == 1:
     # TODO(laigd): rename 'images' to maybe 'inputs', same below.
     return ('images/sec: %.1f +/- %.1f (jitter = %.1f)' %
             (speed_mean, speed_uncertainty, speed_jitter))
   else:
-    return 'images/sec: %.1f' % speed_mean
+    return speed_mean
 
 
 def get_perf_timing(batch_size, step_train_times, ewma_alpha=None, scale=1):
