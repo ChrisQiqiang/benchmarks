@@ -2486,7 +2486,7 @@ class BenchmarkCNN(object):
           sess.run([graph_info.execution_barrier])
 
         # TODO(laigd): rename 'Img' to maybe 'Input'.
-        header_str = ('Local Step\tGlobal Step\tGlobal images\tImages/sec\t' +
+        header_str = ('Tag\tLocal Step\tGlobal Step\tGlobal images\tImages/sec\t' +
                       self.params.loss_type_to_report.replace('/', ' '))
         if self.params.print_training_accuracy or self.params.forward_only:
           # TODO(laigd): use the actual accuracy op names of the model.
