@@ -309,6 +309,7 @@ flags.DEFINE_string('tfprof_file', None,
                     'overhead is spent between steps. So, profiling results '
                     'are more accurate than the slowdown would suggest.' %
                     (_NUM_STEPS_TO_PROFILE, _NUM_OPS_TO_PRINT))
+flags.DEFINE_boolean('prof', 0, 'whether to prof')
 flags.DEFINE_string('graph_file', None,
                     'Write the model\'s graph definition to this file. '
                     'Defaults to binary format unless filename ends in "txt".')
@@ -1302,7 +1303,8 @@ def get_optimizer(params, learning_rate):
   return opt
 
 
-def generate_tfprof_profile(profiler, tfprof_file):
+#def generate_tfprof_profile(profiler, tfprof_file):
+def generate_tfprof_profile(profiler):
   """Generates a tfprof profile, writing it to a file and printing top ops.
 
   Args:
@@ -1310,17 +1312,29 @@ def generate_tfprof_profile(profiler, tfprof_file):
       called.
     tfprof_file: The filename to write the ProfileProto to.
   """
-  profile_proto = profiler.serialize_to_string()
-  log_fn('Dumping ProfileProto to %s' % tfprof_file)
-  with gfile.Open(tfprof_file, 'wb') as f:
-    f.write(profile_proto)
+  # profile_proto = profiler.serialize_to_string()
+  # log_fn('Dumping ProfileProto to %s' % tfprof_file)
+  # with gfile.Open(tfprof_file, 'wb') as f:
+  #   f.write(profile_proto)
+
+  # parameter quantity
+  opts = tf.profiler.ProfileOptionBuilder.trainable_variables_parameter()
+  #opts['max_depth'] = 20
+  profiler.profile_name_scope(options=opts)
+  print('总参数：', profiler.profile_name_scope(options=opts).total_parameters)
+
+  # Floats quantity
+  opts = tf.profiler.ProfileOptionBuilder.float_operation()
+  #opts['max_depth'] = 10
+  profiler.profile_operations(opts)
+  print('总浮点运算数：', profiler.profile_operations(opts).total_float_ops)
 
   # Print out the execution times of the top operations. Note this
   # information can also be obtained with the dumped ProfileProto, but
   # printing it means tfprof doesn't have to be used if all the user wants
   # is the top ops.
   options = tf.profiler.ProfileOptionBuilder.time_and_memory()
-  options['max_depth'] = _NUM_OPS_TO_PRINT
+  options['max_depth'] = 20
   options['order_by'] = 'accelerator_micros'
   profiler.profile_operations(options)
 
@@ -1360,7 +1374,7 @@ class BenchmarkCNN(object):
     min_autotune_warmup = 5 * autotune_threshold * autotune_threshold
     self.num_warmup_batches = self.params.num_warmup_batches if (
         self.params.num_warmup_batches is not None) else max(
-            10, min_autotune_warmup)
+            2, min_autotune_warmup)
     log_rita("place 1 {}".format(self.num_warmup_batches))
     self.graph_file = self.params.graph_file
     self.resize_method = self.params.resize_method
@@ -1842,9 +1856,11 @@ class BenchmarkCNN(object):
       log_fn('RewriterConfig: %s' % self.rewriter_config)
     log_fn('Optimizer:   %s' % self.params.optimizer)
     log_fn('Variables:   %s' % self.params.variable_update)
+    log_fn('Rita_strategy:   %s' % self.params.rita_strategy)
     if (self.params.variable_update == 'replicated' or
         self.params.variable_update == 'distributed_all_reduce'
-        or self.params.variable_update == 'collective_all_reduce'):
+        or self.params.variable_update == 'collective_all_reduce'
+        or self.params.rita_strategy):
       log_fn('AllReduce:   %s' % self.params.all_reduce_spec)
     if self.job_name:
       log_fn('Sync:        %s' % self.params.cross_replica_sync)
@@ -2344,7 +2360,8 @@ class BenchmarkCNN(object):
         summary_writer=summary_writer,
         local_init_run_options=init_run_options)
 
-    profiler = tf.profiler.Profiler() if self.params.tfprof_file else None
+    #profiler = tf.profiler.Profiler() if self.params.tfprof_file else None
+    profiler = tf.profiler.Profiler() if self.params.prof else None
     if self.graph_file is not None:
       path, filename = os.path.split(self.graph_file)
       as_text = filename.endswith('txt')
@@ -2378,7 +2395,8 @@ class BenchmarkCNN(object):
 
     sv.stop()
     if profiler:
-      generate_tfprof_profile(profiler, self.params.tfprof_file)
+      #generate_tfprof_profile(profiler, self.params.tfprof_file)
+      generate_tfprof_profile(profiler)
     return stats
 
   def benchmark_with_session(self, sess, supervisor, graph_info,
