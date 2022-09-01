@@ -887,13 +887,13 @@ def benchmark_one_step(sess,
   should_profile = profiler and 0 <= step < _NUM_STEPS_TO_PROFILE
   need_options_and_metadata = (
       should_profile or collective_graph_key > 0 or
-      ((trace_filename or partitioned_graph_file_prefix) and step == -2)
+      ((trace_filename or partitioned_graph_file_prefix) and step == 10)
   )
   if need_options_and_metadata:
     run_options = tf.RunOptions()
-    if (trace_filename and step == -2) or should_profile:
+    if (trace_filename and step == 10) or should_profile:
       run_options.trace_level = tf.RunOptions.FULL_TRACE
-    if partitioned_graph_file_prefix and step == -2:
+    if partitioned_graph_file_prefix and step == 10:
       run_options.output_partition_graphs = True
     if collective_graph_key > 0:
       run_options.experimental.collective_graph_key = collective_graph_key
@@ -955,7 +955,7 @@ def benchmark_one_step(sess,
   if need_options_and_metadata:
     if should_profile:
       profiler.add_step(step, run_metadata)
-    if trace_filename and step == -2 and should_output_files:
+    if trace_filename and step == 10 and should_output_files:
       log_fn('Dumping trace to %s' % trace_filename)
       trace_dir = os.path.dirname(trace_filename)
       if not gfile.Exists(trace_dir):
@@ -966,7 +966,7 @@ def benchmark_one_step(sess,
           trace_file.write(trace.generate_chrome_trace_format(show_memory=True))
         else:
           trace_file.write(str(run_metadata.step_stats))
-    if partitioned_graph_file_prefix and step == -2 and should_output_files:
+    if partitioned_graph_file_prefix and step == 10 and should_output_files:
       path, filename = os.path.split(partitioned_graph_file_prefix)
       if '.' in filename:
         base_filename, ext = filename.rsplit('.', 1)
