@@ -85,6 +85,7 @@ class ConvNetBuilder(object):
       """Custom getter that forces variables to have type self.variable_type."""
       if not self.use_tf_layers:
         return getter(*args, **kwargs)
+      requested_dtype = kwargs['dtype']
       requested_getterdtype = kwargs['dtype']
       if not (requested_dtype == tf.float32 and self.variable_dtype == tf.float16):
         # Only change the variable dtype if doing so does not decrease variable
