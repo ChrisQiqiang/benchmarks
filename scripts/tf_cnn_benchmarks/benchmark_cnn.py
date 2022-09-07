@@ -183,7 +183,7 @@ flags.DEFINE_boolean('collect_eval_results_async', False,
                      'If True, start a separate process to postprocess eval '
                      'results asynchronously. This currently only works with '
                      'the SSD model.')
-flags.DEFINE_integer('num_warmup_batches', None,
+flags.DEFINE_integer('num_warmup_batches', 2,
                      'number of batches to run before timing')
 flags.DEFINE_integer('autotune_threshold', None,
                      'The autotune threshold for the models')
