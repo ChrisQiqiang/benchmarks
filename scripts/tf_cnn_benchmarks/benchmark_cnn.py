@@ -921,7 +921,11 @@ def benchmark_one_step(sess,
       (step == 0 or (step + 1) % params.display_every == 0)):
     speed_mean, speed_uncertainty, speed_jitter = get_perf_timing(
         batch_size, step_train_times, params.display_perf_ewma)
-    global_step, global_images = global_step_watcher.print_rita_log()
+    if global_step_watcher:
+       global_step, global_images = global_step_watcher.print_rita_log()
+    else:
+       global_step = step
+       global_images = step * batch_size
     rita_global_log = "{}\t{}".format(global_step, global_images)
     log_str = '%s\t%i\t%s\t%s\t%.*f' % (
         'x',
@@ -2522,7 +2526,8 @@ class BenchmarkCNN(object):
 
 
         assert len(step_train_times) == self.num_warmup_batches
-        global_step_watcher.ignore_warmup_batches()
+        if global_step_watcher:
+          global_step_watcher.ignore_warmup_batches()
         # reset times to ignore warm up batch
         step_train_times = []
         loop_start_time = time.perf_counter()
@@ -2978,7 +2983,7 @@ class BenchmarkCNN(object):
           # variance variables, which are updated (but not used) during
           # training, and used during evaluation. The moving mean and variance
           # approximate the true mean and variance across all images in the
-          # dataset. Therefore, in replicated mode, these moving averages would
+          # , in replicated dataset. Thereforemode, these moving averages would
           # be almost identical for each tower, and so we only update and save
           # the moving averages for one tower. In parameter server mode, all
           # towers share a copy of the variables so we also only need to update

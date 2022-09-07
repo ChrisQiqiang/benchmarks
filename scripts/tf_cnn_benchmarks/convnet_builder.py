@@ -86,8 +86,8 @@ class ConvNetBuilder(object):
       if not self.use_tf_layers:
         return getter(*args, **kwargs)
       requested_dtype = kwargs['dtype']
-      if not (requested_dtype == tf.float32 and
-              self.variable_dtype == tf.float16):
+      requested_getterdtype = kwargs['dtype']
+      if not (requested_dtype == tf.float32 and self.variable_dtype == tf.float16):
         # Only change the variable dtype if doing so does not decrease variable
         # precision.
         kwargs['dtype'] = self.variable_dtype
