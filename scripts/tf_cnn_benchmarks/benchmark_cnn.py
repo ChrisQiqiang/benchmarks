@@ -319,7 +319,7 @@ flags.DEFINE_string('partitioned_graph_file_prefix', None,
                     'with the given prefix.')
 flags.DEFINE_enum('optimizer', 'sgd', ('momentum', 'sgd', 'rmsprop', 'adam'),
                   'Optimizer to use')
-flags.DEFINE_float('init_learning_rate', 0.32,
+flags.DEFINE_float('init_learning_rate', 0.2,
                    'Initial learning rate for training.')
 flags.DEFINE_string('piecewise_learning_rate_schedule', None,
                     'Specifies a piecewise learning rate schedule based on the '
@@ -333,7 +333,7 @@ flags.DEFINE_string('piecewise_learning_rate_schedule', None,
 flags.DEFINE_float('num_epochs_per_decay', 350,
                    'Steps after which learning rate decays. If 0, the learning '
                    'rate does not decay.')
-flags.DEFINE_float('learning_rate_decay_factor', 0.1,
+flags.DEFINE_float('learning_rate_decay_factor', 0.01,
                    'Learning rate decay factor. Decay by this factor every '
                    '`num_epochs_per_decay` epochs. If 0, learning rate does '
                    'not decay.')
@@ -345,7 +345,7 @@ flags.DEFINE_float('minimum_learning_rate', 0,
                    'never decay past this value. Requires `learning_rate`, '
                    '`num_epochs_per_decay` and `learning_rate_decay_factor` to '
                    'be set.')
-flags.DEFINE_float('resnet_base_lr', 0.32, "Base learning rate at bs=256. Only "
+flags.DEFINE_float('resnet_base_lr', 0.1, "Base learning rate at bs=256. Only "
                    "relevant when training ResNet and utilizing the model's "
                    "learning rate heuristic (get_learning_rate).")
 flags.DEFINE_float('momentum', 0.9, 'Momentum for training.')
